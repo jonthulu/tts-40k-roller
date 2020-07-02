@@ -65,7 +65,11 @@ function onHitRoll(message, player)
         return
     end
 
-    -- TODO: Add support for dice dieCount (3d6 or 5d3) (already in the string.match)
+    -- Support for dice dieCount (3d6 or 5d3)
+    local dCount, dSides = string.match(dieCount, '(%d+)d([36])')
+    if dCount ~= nil then
+        dieCount = rollDxAndSum(dSides, dCount)
+    end
 
     if isOverDieLimit(dieCount) then
         return
@@ -175,18 +179,26 @@ function onIgnoreWoundRoll(message, player)
         return
     end
 
-    -- TODO: Add support for dice Multiplier (xd3 or xd6) (already in the string.match)
-
     if not isEmpty(skill) then
         if lastAttack.state ~= 'wound' and lastAttack.state ~= 'save' then
             printError('You can not provide a multiplier unless rolling Ignore Wounds after a Wound roll or Save roll.')
             return
         end
 
+        local incomingTotal
+
         if lastAttack.state == 'wound' then
-            dieCount = lastAttack.woundResults.hits * dieCount
+            incomingTotal = lastAttack.woundResults.hits
         else
-            dieCount = lastAttack.saveResults.misses * dieCount
+            incomingTotal = lastAttack.saveResults.misses
+        end
+
+        -- Support for dice Multiplier (xd3 or xd6)
+        local dSides = string.match(dieCount, 'd(%d+)')
+        if dSides ~= nil then
+            dieCount = rollDxAndSum(dSides, incomingTotal)
+        else
+            dieCount = incomingTotal * dieCount
         end
     else
         if isEmpty(dieCountAlt) then
@@ -284,6 +296,21 @@ function onReRoll(message, player)
         lastAttack.woundValues = combinedValues
         lastAttack.woundResults = combinedResults
     end
+end
+
+function rollDxAndSum(dieSides, dieCount)
+    local safeDieSides = tonumber(dieSides)
+    local safeDieCount = tonumber(dieCount)
+
+    local sum = 0
+
+    for i=1,safeDieCount do
+        local rolledValue = math.floor(math.random() * safeDieSides + 1)
+
+        sum += rolledValue
+    end
+    
+    return sum
 end
 
 function throwD6(dieCount, skill)
