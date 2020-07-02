@@ -186,7 +186,7 @@ function onIgnoreWoundRoll(message, player)
         if lastAttack.state == 'wound' then
             dieCount = lastAttack.woundResults.hits * dieCount
         else
-            dieCount = lastAttack.saveResults.hits * dieCount
+            dieCount = lastAttack.saveResults.misses * dieCount
         end
     else
         if isEmpty(dieCount) then
@@ -198,7 +198,7 @@ function onIgnoreWoundRoll(message, player)
             if lastAttack.state == 'wound' then
                 dieCount = lastAttack.woundResults.hits
             else
-                dieCount = lastAttack.saveResults.hits
+                dieCount = lastAttack.saveResults.misses
             end
         else
             dieCount = dieCountAlt
@@ -227,7 +227,7 @@ function onIgnoreWoundRoll(message, player)
     lastAttack.ignoreResults = results
 end
 
-function onReroll(message, player)
+function onReRoll(message, player)
     local reRollValue = string.match(message, 'reroll ([1%*])')
     if isEmpty(reRollValue) then
         printError('Command: reroll *Values')
@@ -249,17 +249,19 @@ function onReroll(message, player)
     end
 
     local dieCount = 0
+    local onlyReRollOnes = false
     if reRollValue == '1' then
-        dieCount = previousValues['1']
-        previousValues['1'] = 0
+        dieCount = previousValues[1]
+        previousValues[1] = 0
+        onlyReRollOnes = true
     else
-        for i=1,previousSkill do
+        for i=1, (previousSkill - 1) do
             dieCount = dieCount + previousValues[i]
             previousValues[i] = 0
         end
     end
 
-    local combinedValues, combinedResults = reRollD6(dieCount, previousSkill, previousValues)
+    local combinedValues, combinedResults = reRollD6(dieCount, previousSkill, previousValues, onlyReRollOnes)
 
     if lastAttack.state == 'hit' then
         -- Output the re-rolled hit roll numbers in case a rule will activate on a number.
@@ -287,9 +289,11 @@ end
 function throwD6(dieCount, skill)
     local thrownDice = {0, 0, 0, 0, 0, 0}
     local results = {hits = 0, misses = 0}
+
+    local safeDieCount = tonumber(dieCount)
     local safeSkill = tonumber(skill)
 
-    for i=1,dieCount do
+    for i=1,safeDieCount do
         local d = math.floor(math.random() * 6 + 1)
 
         thrownDice[d] = thrownDice[d] + 1
@@ -306,36 +310,32 @@ function throwD6(dieCount, skill)
     return thrownDice, results
 end
 
-function reRollD6(dieCount, skill, previousValues)
+function reRollD6(dieCount, skill, previousValues, onlyReRollOnes)
     local thrownDice = {0, 0, 0, 0, 0, 0}
     local results = {hits = 0, misses = 0}
+
+    local safeDieCount = tonumber(dieCount)
     local safeSkill = tonumber(skill)
 
     for i=1, #thrownDice do
-        if i >= safeSkill then
+        if not onlyReRollOnes and i >= safeSkill then
+            thrownDice[i] = previousValues[i]
+        elseif onlyReRollOnes and i ~= 1 then
             thrownDice[i] = previousValues[i]
         end
     end
 
-    for i=1,dieCount do
+    for i=1,safeDieCount do
         local d = math.floor(math.random() * 6 + 1)
 
         thrownDice[d] = thrownDice[d] + 1
-
-        if not isEmpty(skill) then
-            if d >= safeSkill then
-                results.hits = results.hits + 1
-            else
-                results.misses = results.misses + 1
-            end
-        end
     end
 
     for i=1, #thrownDice do
-        if thrownDice[i] >= safeSkill then
-            results.hits = results.hits + 1
+        if i >= safeSkill then
+            results.hits = results.hits + thrownDice[i]
         else
-            results.misses = results.misses + 1
+            results.misses = results.misses + thrownDice[i]
         end
     end
 
