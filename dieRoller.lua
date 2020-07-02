@@ -24,48 +24,50 @@ end
 
 resetLastAttack()
 
+onChat('hit 20 3')
+
 function onChat(message, player)
-    local isHitRoll = string.find(message, '/hit ')
-    if !isEmpty(isHitRoll) then
+    local isHitRoll = string.find(message, 'hit ')
+    if isHitRoll == 1 then
         onHitRoll(message, player)
         return
     end
     
-    local isWoundRoll = string.find(message, '/wound ')
-    if !isEmpty(isWoundRoll) then
+    local isWoundRoll = string.find(message, 'wound ')
+    if isWoundRoll == 1 then
         onWoundRoll(message, player)
         return
     end
     
-    local isSaveRoll = string.find(message, '/save ')
-    if !isEmpty(isSaveRoll) then
+    local isSaveRoll = string.find(message, 'save ')
+    if isSaveRoll == 1 then
         onSaveRoll(message, player)
         return
     end
 
-    local isIgnoreWoundRoll = string.find(message, '/ignore ')
-    if !isEmpty(isIgnoreWoundRoll) then
+    local isIgnoreWoundRoll = string.find(message, 'ignore ')
+    if isIgnoreWoundRoll == 1 then
         onIgnoreWoundRoll(message, player)
         return
     end
     
-    local isReRoll = string.find(message, '/reroll ')
-    if !isEmpty(isReRoll) then
+    local isReRoll = string.find(message, 'reroll ')
+    if isReRoll == 1 then
         onReRoll(message, player)
         return
     end
 end
 
 local function onHitRoll(message, player)
-    local skill, dieCount = string.match(message, '/hit ([2-6])+? (%d+d?[36]?)')
+    local skill, dieCount = string.match(message, 'hit ([2-6])+? (%d+d?[36]?)')
     if isEmpty(skill) or isEmpty(dieCount) then
-        printError('Command: /hit *Skill *Attacks')
+        printError('Command: hit *Skill *Attacks')
         printError('  *Skill - 2, 3, 4, 5, or 6 - The value that designates what is needed to hit.')
         printError('  *Attacks - The number of attacks (integer).')
         return
     end
 
-    // TODO: Add support for dice dieCount (3d6 or 5d3) (already in the string.match)
+    -- TODO: Add support for dice dieCount (3d6 or 5d3) (already in the string.match)
     
     if isOverDieLimit(dieCount) then
         return
@@ -75,7 +77,7 @@ local function onHitRoll(message, player)
     
     local values, results = throwD6(dieCount, skill)
     
-    // Output the hit roll numbers in case a rule will activate on a number.
+    -- Output the hit roll numbers in case a rule will activate on a number.
     printDieValues('Hit rolls: ', values, player)
     
     local hitOutput = string.format("%s Hits  |  %s Misses", results.hits, results.misses)
@@ -88,11 +90,11 @@ local function onHitRoll(message, player)
 end
 
 local function onWoundRoll(message, player)
-    local skill, dieCount = string.match(message, '/wound ([2-6])+? ?(%d*)')
+    local skill, dieCount = string.match(message, 'wound ([2-6])+? ?(%d*)')
     if isEmpty(skill) then
-        printError('Command: /wound *Skill [*Hits]')
+        printError('Command: wound *Skill [*Hits]')
         printError('  *Skill - 2, 3, 4, 5, or 6 - The value that designates what is needed to wound.')
-        printError('  *Hits - Optional - The number of hits (integer). This is not needed following a /hit command.')
+        printError('  *Hits - Optional - The number of hits (integer). This is not needed following a hit command.')
         return
     end
     
@@ -113,7 +115,7 @@ local function onWoundRoll(message, player)
     
     local values, results = throwD6(dieCount, skill)
     
-    // Output the wound roll numbers in case a rule will activate on a number.
+    -- Output the wound roll numbers in case a rule will activate on a number.
     printDieValues('Wound rolls: ', values, player)
     
     local woundOutput = string.format("%s Wounds  |  %s Misses", results.hits, results.misses)
@@ -126,11 +128,11 @@ local function onWoundRoll(message, player)
 end
 
 local function onSaveRoll(message, player)
-    local skill, dieCount = string.match(message, '/save ([2-6])+? ?(%d*)')
+    local skill, dieCount = string.match(message, 'save ([2-6])+? ?(%d*)')
     if isEmpty(skill) then
-        printError('Command: /save *Skill [*Wounds]')
+        printError('Command: save *Skill [*Wounds]')
         printError('  *Skill - 2, 3, 4, 5, or 6 - The value that designates what is needed to save.')
-        printError('  *Wounds - Optional - The number of wounds (integer). This is not needed following a /wound command.')
+        printError('  *Wounds - Optional - The number of wounds (integer). This is not needed following a wound command.')
         return
     end
     
@@ -151,7 +153,7 @@ local function onSaveRoll(message, player)
     
     local values, results = throwD6(dieCount, skill)
     
-    // Output the save roll numbers in case a rule will activate on a number.
+    -- Output the save roll numbers in case a rule will activate on a number.
     printDieValues('Save rolls: ', values, player)
     
     local saveOutput = string.format("%s Saved  |  %s Unsaved", results.hits, results.misses)
@@ -164,29 +166,29 @@ local function onSaveRoll(message, player)
 end
 
 local function onIgnoreWoundRoll(message, player)
-    local skill, dieCount = string.match(message, '/ignore ([2-6])+? x(d?%d)')
-    local skillAlt, dieCountAlt = string.match(message, '/ignore ([2-6])+? ?(%d*)')
+    local skill, dieCount = string.match(message, 'ignore ([2-6])+? x(d?%d)')
+    local skillAlt, dieCountAlt = string.match(message, 'ignore ([2-6])+? ?(%d*)')
     
     if isEmpty(skill) and isEmpty(skillAlt) then
-        printError('Command: /ignore *Skill [*Multiplier] or [*Damage]')
+        printError('Command: ignore *Skill [*Multiplier] or [*Damage]')
         printError('  *Skill - 2, 3, 4, 5, or 6 - The value that designates what is needed to ignore the wound.')
         printError('  *Multiplier - Optional - Must be prefixed with an x. This will multiply the previous wound/unsaved value by the given value to determine damage.')
-        printError('  *Damage - Optional - The amount of damage (integer). This is not needed following a /wound or /save command.')
+        printError('  *Damage - Optional - The amount of damage (integer). This is not needed following a wound or save command.')
         return
     end
     
-    // TODO: Add support for dice Multiplier (xd3 or xd6) (already in the string.match)
+    -- TODO: Add support for dice Multiplier (xd3 or xd6) (already in the string.match)
     
-    if !isEmpty(skill) then
+    if not isEmpty(skill) then
         if lastAttack.state != 'wound' and lastAttack.state != 'save' then
             printError('You can not provide a multiplier unless rolling Ignore Wounds after a Wound roll or Save roll.')
             return
         end
         
         if lastAttack.state == 'wound' then
-            dieCount = lastAttack.woundResults.hits x dieCount
+            dieCount = lastAttack.woundResults.hits * dieCount
         else
-            dieCount = lastAttack.saveResults.hits x dieCount
+            dieCount = lastAttack.saveResults.hits * dieCount
         end
     else
         if isEmpty(dieCount) then
@@ -215,7 +217,7 @@ local function onIgnoreWoundRoll(message, player)
     
     local values, results = throwD6(dieCount, skill)
     
-    // Output the ignore wound roll numbers in case a rule will activate on a number.
+    -- Output the ignore wound roll numbers in case a rule will activate on a number.
     printDieValues('Ignore Wound rolls: ', values, player)
     
     local saveOutput = string.format("%s Ignored  |  %s Damage Taken", results.hits, results.misses)
@@ -228,9 +230,9 @@ local function onIgnoreWoundRoll(message, player)
 end
 
 local function onReroll(message, player)
-    local reRollValue = string.match(message, '/reroll ([1%*])')
+    local reRollValue = string.match(message, 'reroll ([1%*])')
     if isEmpty(reRollValue) then
-        printError('Command: /reroll *Values')
+        printError('Command: reroll *Values')
         printError('  *Values - 1 or * - 1 re-rolls all 1s; * re-rolls all fails.')
         return
     end
@@ -262,7 +264,7 @@ local function onReroll(message, player)
     local combinedValues, combinedResults = reRollD6(dieCount, previousSkill, previousValues)
     
     if lastAttack.state == 'hit' then
-        // Output the re-rolled hit roll numbers in case a rule will activate on a number.
+        -- Output the re-rolled hit roll numbers in case a rule will activate on a number.
         printDieValues('Rerolled Hits: ', combinedValues, player)
         
         local hitOutput = string.format("%s Hits  |  %s Misses", combinedResults.hits, combinedResults.misses)
@@ -272,7 +274,7 @@ local function onReroll(message, player)
         lastAttack.hitValues = combinedValues
         lastAttack.hitResults = combinedResults
     elseif lastAttack.state == 'wound' then
-        // Output the re-rolled wound roll numbers in case a rule will activate on a number.
+        -- Output the re-rolled wound roll numbers in case a rule will activate on a number.
         printDieValues('Rerolled Wounds: ', combinedValues, player)
         
         local woundOutput = string.format("%s Wounds  |  %s Misses", combinedResults.hits, combinedResults.misses)
@@ -293,7 +295,7 @@ local function throwD6(dieCount, skill)
         
         thrownDice[d] = thrownDice[d] + 1
         
-        if !isEmpty(skill) then
+        if not isEmpty(skill) then
             if d >= skill then
                 results.hit = results.hit + 1
             else
@@ -320,7 +322,7 @@ local function reRollD6(dieCount, skill, previousValues)
         
         thrownDice[d] = thrownDice[d] + 1
         
-        if !isEmpty(skill) then
+        if not isEmpty(skill) then
             if d >= skill then
                 results.hit = results.hit + 1
             else
@@ -342,7 +344,7 @@ end
 
 local function isOverDieLimit(dieCount)
     if dieCount > dieLimit then
-        // Cannot roll more than dieLimit die
+        -- Cannot roll more than dieLimit die
         printToAll(string.format("Cannot roll more than %s die.", dieLimit))
         return true
     end
