@@ -189,7 +189,7 @@ function onIgnoreWoundRoll(message, player)
             dieCount = lastAttack.saveResults.misses * dieCount
         end
     else
-        if isEmpty(dieCount) then
+        if isEmpty(dieCountAlt) then
             if lastAttack.state ~= 'wound' and lastAttack.state ~= 'save' then
                 printError('You must provide the number of dice unless rolling Ignore Wounds after a Wound roll or Save roll.')
                 return

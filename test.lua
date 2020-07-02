@@ -35,6 +35,7 @@ function tprint (tbl, indent)
 end
 
 onChat('hit 3 30', 'Green')
+onChat('reroll 1', 'Green')
 onChat('wound 4', 'Green')
 onChat('reroll *', 'Green')
 onChat('save 5', 'Blue')
