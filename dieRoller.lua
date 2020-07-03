@@ -307,9 +307,9 @@ function rollDxAndSum(dieSides, dieCount)
     for i=1,safeDieCount do
         local rolledValue = math.floor(math.random() * safeDieSides + 1)
 
-        sum += rolledValue
+        sum = sum + rolledValue
     end
-    
+
     return sum
 end
 

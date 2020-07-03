@@ -34,9 +34,9 @@ function tprint (tbl, indent)
   return toprint
 end
 
-onChat('hit 3 30', 'Green')
+onChat('hit 3 10d3', 'Green')
 onChat('reroll 1', 'Green')
 onChat('wound 4', 'Green')
 onChat('reroll *', 'Green')
 onChat('save 5', 'Blue')
-onChat('ignore 6', 'Blue')
+onChat('ignore 6 xd3', 'Blue')
